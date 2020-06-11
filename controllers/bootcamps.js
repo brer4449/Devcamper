@@ -1,9 +1,13 @@
 // Middleware functions
+// Middleware is a function that has access to req, response cycle and runs during that cycle
+// Can set req variables, etc.
 // @desc    Get all bootcamps
 // @route   GET /api/v1/bootcamps
 // @access  Public (token needed? no)
 exports.getBootcamps = (req, res, next) => {
-  res.status(200).json({ success: true, msg: "Show all bootcamps" });
+  res
+    .status(200)
+    .json({ success: true, msg: "Show all bootcamps" /*hello: req.hello */ });
 };
 
 // @desc    Get single bootcamp
