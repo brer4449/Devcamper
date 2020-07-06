@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const slugify = require("slugify");
 
 const BootcampSchema = new mongoose.Schema({
   name: {
@@ -105,6 +106,16 @@ const BootcampSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+// Create bootcamp slug from the name
+// .pre and .post and those are executed either before or after the operation (the save in this case)
+BootcampSchema.pre("save", function (next) {
+  // can access any schema field when we save a bootcamp (a document)
+  // setting the slug field equal to the name field after it's been slugified
+  // object passed in are options (lower: true means all lower case)
+  this.slug = slugify(this.name, { lower: true });
+  next();
 });
 
 module.exports = mongoose.model("Bootcamp", BootcampSchema);
