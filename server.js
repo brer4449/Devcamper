@@ -16,6 +16,9 @@ const bootcamps = require("./routes/bootcamps");
 
 const app = express();
 
+// req.body parser
+app.use(express.json());
+
 // Custom logger to demo what middleware does
 // app.use(logger);
 // Dev logging middleware (only want to run if in dev environment)
@@ -36,7 +39,7 @@ const server = app.listen(
   )
 );
 
-// Handle unhandled promise rejections
+// Global handler for all unhandled promise rejections
 process.on("unhandledRejection", (err, promise) => {
   console.log(`Error: ${err.message}`.red);
   // Close server and exit process
