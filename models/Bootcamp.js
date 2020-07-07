@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
+const geocoder = require("../utils/geocode");
 
 const BootcampSchema = new mongoose.Schema({
   name: {
@@ -115,6 +116,27 @@ BootcampSchema.pre("save", function (next) {
   // setting the slug field equal to the name field after it's been slugified
   // object passed in are options (lower: true means all lower case)
   this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+// Geocode & create location field
+BootcampSchema.pre("save", async function (next) {
+  // can access any of the schema fields using the this keyword
+  const loc = await geocoder.geocode(this.address);
+  // type and coordinates are the two required fields to have a geo json point
+  // all of this can be found in the docs. the reason we're doing loc[0] is it's an array of an object, and we want the first one
+  this.location = {
+    type: "Point",
+    coordinates: [loc[0].longitude, loc[0].latitude],
+    formattedAddress: loc[0].formattedAddress,
+    street: loc[0].streetName,
+    city: loc[0].city,
+    state: loc[0].stateCode,
+    zipcode: loc[0].zipcode,
+    country: loc[0].countryCode,
+  };
+  // Do not save address in DB
+  this.address = undefined;
   next();
 });
 
