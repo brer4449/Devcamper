@@ -11,16 +11,41 @@ const Bootcamp = require("../models/Bootcamp");
 // @access  Public (token needed? no)
 exports.getBootcamps = async (req, res, next) => {
   let query;
-  let queryStr = JSON.stringify(req.query);
+  // our copied version of req.query
+  const reqQuery = { ...req.query };
+  // Fields to exclude (that we don't want to be matched for filtering)
+  const removeFields = ["select", "sort"];
+  // Loop over removeFields & delete them from reqQuery
+  removeFields.forEach((param) => delete reqQuery[param]);
+  // Create out query string
+  let queryStr = JSON.stringify(reqQuery);
   // inserting a money sign in front of greater than less than, etc. since $ is needed to make it a mongoose operator
   // in regex "in" searches a list
+  // Create operators ($gt, $gte, etc.)
   queryStr = queryStr.replace(
     /\b(gt|gte|lt|lte|in)\b/g,
     (match) => `$${match}`
   );
+  // Finding resource
   query = Bootcamp.find(JSON.parse(queryStr));
+  // Select fields
+  if (req.query.select) {
+    // turn it into an array and then join them without commas
+    const fields = req.query.select.split(",").join(" ");
+    query = query.select(fields);
+  }
+  // Sort
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    query = query.sort(sortBy);
+  } else {
+    // descending is the minus sign, and createdAt is from our model
+    query = query.sort("-createdAt");
+  }
   // express makes it really easy access to query params via req.query
   // console.log(req.query);
+
+  // Executing our query
   const bootcamps = await query;
   res
     .status(200)
