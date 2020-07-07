@@ -10,7 +10,18 @@ const Bootcamp = require("../models/Bootcamp");
 // @route   GET /api/v1/bootcamps
 // @access  Public (token needed? no)
 exports.getBootcamps = async (req, res, next) => {
-  const bootcamps = await Bootcamp.find();
+  let query;
+  let queryStr = JSON.stringify(req.query);
+  // inserting a money sign in front of greater than less than, etc. since $ is needed to make it a mongoose operator
+  // in regex "in" searches a list
+  queryStr = queryStr.replace(
+    /\b(gt|gte|lt|lte|in)\b/g,
+    (match) => `$${match}`
+  );
+  query = Bootcamp.find(JSON.parse(queryStr));
+  // express makes it really easy access to query params via req.query
+  // console.log(req.query);
+  const bootcamps = await query;
   res
     .status(200)
     .json({ success: true, count: bootcamps.length, data: bootcamps });
