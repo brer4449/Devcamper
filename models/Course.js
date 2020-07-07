@@ -50,7 +50,6 @@ courses.goFish();
 
 // Static method to get average of course tuitions
 CourseSchema.statics.getAverageCost = async function (bootcampId) {
-  console.log("Calculating average cost...".blue);
   // can call aggregate on the model
   // aggregate returns a promise so have to use await
   // the brackets are called a "pipeline" and there are different steps to a pipeline
