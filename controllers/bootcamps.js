@@ -27,7 +27,7 @@ exports.getBootcamps = async (req, res, next) => {
     (match) => `$${match}`
   );
   // Finding resource
-  query = Bootcamp.find(JSON.parse(queryStr));
+  query = Bootcamp.find(JSON.parse(queryStr)).populate("courses");
   // Select fields
   if (req.query.select) {
     // turn it into an array and then join them without commas
@@ -136,7 +136,7 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/v1/bootcamps/:id
 // @access  Private (token needed? yes)
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  const bootcamp = await Bootcamp.findById(req.params.id);
 
   if (!bootcamp) {
     // return res.status(400).json({ success: false });
@@ -144,6 +144,8 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
       new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404)
     );
   }
+  // this remove method will trigger cascade delete middleware
+  bootcamp.remove();
   res.status(200).json({ success: true, data: {} });
 });
 
