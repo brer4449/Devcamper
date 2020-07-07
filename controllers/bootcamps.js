@@ -14,7 +14,7 @@ exports.getBootcamps = async (req, res, next) => {
   // our copied version of req.query
   const reqQuery = { ...req.query };
   // Fields to exclude (that we don't want to be matched for filtering)
-  const removeFields = ["select", "sort"];
+  const removeFields = ["select", "sort", "limit", "page"];
   // Loop over removeFields & delete them from reqQuery
   removeFields.forEach((param) => delete reqQuery[param]);
   // Create out query string
@@ -42,14 +42,44 @@ exports.getBootcamps = async (req, res, next) => {
     // descending is the minus sign, and createdAt is from our model
     query = query.sort("-createdAt");
   }
+  // Pagination
+  // turning it into a number, and setting radix (base 10) as second param or page 1 as default if not specified
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 25;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  // a Mongoose method that lets us count all the documents
+  const total = await Bootcamp.countDocuments();
+
+  query = query.skip(startIndex).limit(limit);
+
   // express makes it really easy access to query params via req.query
   // console.log(req.query);
 
   // Executing our query
   const bootcamps = await query;
-  res
-    .status(200)
-    .json({ success: true, count: bootcamps.length, data: bootcamps });
+  // Pagination result
+  const pagination = {};
+  if (endIndex < total) {
+    pagination.next = {
+      page: page + 1,
+      limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    pagination.prev = {
+      page: page - 1,
+      limit,
+    };
+  }
+
+  res.status(200).json({
+    success: true,
+    count: bootcamps.length,
+    pagination,
+    data: bootcamps,
+  });
 };
 
 // @desc    Get single bootcamp
