@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -43,5 +44,19 @@ UserSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
+
+// Mongoose method
+// since it's a method and not a static, calling it on the actual user, so we have access to that user's id
+// this keyword pertains to the current user
+// Sign JSON Web Token and return
+// JWT have 3 parts to them, first is algorithm and token type, next is the payload data (whatever we want sent in the token (user id, issuedAt etc.)), and last part is the verify signature
+// want the user id so that when a user sends a request with the token, we know which user is
+// if we want the logged in user's profile, we can look at the token and get the data part (of the token) and pull out the user id and use that in a mongoose query to get that correct user
+UserSchema.methods.getSignedJwtToken = function () {
+  // the jwt sign method takes in the payload, next param is the secret, last param is any options we want
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE,
+  });
+};
 
 module.exports = mongoose.model("User", UserSchema);
