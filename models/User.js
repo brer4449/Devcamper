@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -32,6 +33,15 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+// Encrypt password using bcrypt
+UserSchema.pre("save", async function (next) {
+  // having this middleware should hash our password
+  // need to generate a salt to use that to hash the password
+  // gensalt is a method on bcrypt object, which returns a promise, thus using await, takes in a number of rounds, the higher the rounds the more secure, but the heavier it is on your system, 10 is recommend in docs...
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 module.exports = mongoose.model("User", UserSchema);
