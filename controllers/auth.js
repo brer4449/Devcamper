@@ -12,10 +12,7 @@ exports.register = asyncHandler(async (req, res, next) => {
   const user = await User.create({ name, email, password, role });
 
   // Create token
-  // LOWER CASE U, important since this is a method and NOT a static, so calling it on what we get from the model
-  const token = user.getSignedJwtToken();
-
-  res.status(200).json({ success: true, token });
+  sendTokenResponse(user, 200, res);
 });
 
 // @desc    Login User
@@ -46,8 +43,31 @@ exports.login = asyncHandler(async (req, res, next) => {
   }
 
   // Create token
-  // LOWER CASE U, important since this is a method and NOT a static, so calling it on what we get from the model
+  sendTokenResponse(user, 200, res);
+});
+
+// Custom function that will get token from model, create cookie and send response
+const sendTokenResponse = (user, statusCode, res) => {
+  // Create token
   const token = user.getSignedJwtToken();
 
-  res.status(200).json({ success: true, token });
-});
+  // Create cookie
+  const options = {
+    // calculation is 30 days, since cookie-parser makes us pass in an int
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+
+  // so that way when we're in production, the secure flag will be on our cookie
+  if (process.env.NODE_ENV === "production") {
+    options.secure = true;
+  }
+
+  res
+    .status(statusCode)
+    // takes in 3 things, the key which we're calling token, the value which is going to be the token itself, and the options
+    .cookie("token", token, options)
+    .json({ success: true, token });
+};
