@@ -71,3 +71,17 @@ const sendTokenResponse = (user, statusCode, res) => {
     .cookie("token", token, options)
     .json({ success: true, token });
 };
+
+// @desc    Current logged in user
+// @route   POST /api/v1/auth/me
+// @access  Private (token needed? YES)
+
+exports.getMe = asyncHandler(async (req, res, next) => {
+  // since we're using protect route, will always have access to req.user which will always be current user
+  const user = await User.findById(req.user.id);
+
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
