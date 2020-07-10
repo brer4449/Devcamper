@@ -21,7 +21,7 @@ const courseRouter = require("./courses");
 
 const router = express.Router();
 
-const { protect } = require("../middleware/auth");
+const { protect, authorize } = require("../middleware/auth");
 
 // Re-route into other resource routers
 // anything that will have /:bootcampId/courses included as a param should be mounted into courseRouter
@@ -31,17 +31,20 @@ router.use("/:bootcampId/courses", courseRouter);
 
 router.route("/radius/:zipcode/:distance").get(getBootcampsInRadius);
 
-router.route("/:id/photo").put(protect, bootcampPhotoUpload);
+// authorize has to be after protect, since we're using req.user which is set in the protect middleware
+router
+  .route("/:id/photo")
+  .put(protect, authorize("publisher", "admin"), bootcampPhotoUpload);
 
 router
   .route("/")
   .get(advancedResults(Bootcamp, "courses"), getBootcamps)
-  .post(protect, createBootcamp);
+  .post(protect, authorize("publisher", "admin"), createBootcamp);
 
 router
   .route("/:id")
   .get(getBootcamp)
-  .put(protect, updateBootcamp)
-  .delete(protect, deleteBootcamp);
+  .put(protect, authorize("publisher", "admin"), updateBootcamp)
+  .delete(protect, authorize("publisher", "admin"), deleteBootcamp);
 
 module.exports = router;
