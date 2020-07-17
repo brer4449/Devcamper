@@ -52,6 +52,7 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
   // get bootcamp id which is in req.params.bootcampId
   // need to submit that as body field, so set the body of bootcamp field to the id that's in the URL
   req.body.bootcamp = req.params.bootcampId;
+  req.body.user = req.user.id;
 
   const bootcamp = await Bootcamp.findById(req.params.bootcampId);
 
@@ -61,6 +62,19 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
       404
     );
   }
+
+  // Make sure user is bootcamp owner
+  // bootcamp.user is going to give an object with an id in it, need to compare it to req.user.id which is a string, so need to convert bootcamp.user into a string
+  // also checking that the logged in user is not an admin, cuz if they are an admin they should be able to update regardless of ownership
+  if (bootcamp.user.toString() != req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `User with id ${req.user.id} is not authorized to add course to bootcamp ${bootcamp._id}`,
+        401
+      )
+    );
+  }
+
   // Create a new course
   const course = await Course.create(req.body);
 
@@ -82,6 +96,19 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
       404
     );
   }
+
+  // Make sure user is course owner
+  // course.user is going to give an object with an id in it, need to compare it to req.user.id which is a string, so need to convert course.user into a string
+  // also checking that the logged in user is not an admin, cuz if they are an admin they should be able to update regardless of ownership
+  if (course.user.toString() != req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `User with id ${req.user.id} is not authorized to update course ${course._id}`,
+        401
+      )
+    );
+  }
+
   // Update a course
   course = await Course.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -106,6 +133,19 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
       404
     );
   }
+
+  // Make sure user is course owner
+  // course.user is going to give an object with an id in it, need to compare it to req.user.id which is a string, so need to convert course.user into a string
+  // also checking that the logged in user is not an admin, cuz if they are an admin they should be able to update regardless of ownership
+  if (course.user.toString() != req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `User with id ${req.user.id} is not authorized to delete course ${course._id}`,
+        401
+      )
+    );
+  }
+
   // Delete a course
   await course.remove();
 
