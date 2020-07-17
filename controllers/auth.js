@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const sendEmail = require("../utils/sendEmail");
@@ -81,7 +82,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   // Create reset URL
   const resetUrl = `${req.protocol}://${req.get(
     "host"
-  )}/api/v1/resetpassword/${resetToken}`;
+  )}/api/v1/auth/resetpassword/${resetToken}`;
 
   const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
 
@@ -106,6 +107,42 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     success: true,
     data: user,
   });
+});
+
+// @desc    Reset Password
+// @route   PUT /api/v1/auth/resetpassword/:resettoken
+// @access  Public (token needed? no)
+
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  // Get hashed token
+  // grabbing the resettoken from the url and hashing it so it matches what's in the DB and then digesting it
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resettoken)
+    .digest("hex");
+
+  // hiccup somewhere around video 56/57.... not sure why resets password, but get error in CL
+  // IT WORKS THOOOOOO ugh
+  // find the user by id
+  const user = await User.findOne({
+    resetPasswordToken,
+    // comparing that the expiration has not passed
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new ErrorResponse("Invalid Token", 400));
+  }
+
+  // Set the new password
+  user.password = req.body.password;
+  // Set these two fields to undefined (when a field is set to undefined it just goes away)
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
 });
 
 // Custom function that will get token from model, create cookie and send response
