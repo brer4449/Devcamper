@@ -36,6 +36,25 @@ exports.getBootcamp = asyncHandler(async (req, res, next) => {
 // @route   POST /api/v1/bootcamps
 // @access  Private (token needed? yes)
 exports.createBootcamp = asyncHandler(async (req, res, next) => {
+  // don't want to send user id to req.body when we create a bootcamp
+  // Add user to req.body
+  // the req.user is the logged in user and we want their id
+  // this makes it so the user is on the bootcamp that's created
+  req.body.user = req.user.id;
+
+  // Check for published bootcamp
+  // find it by user where the user is equal to the logged in user
+  const publishedBootcamp = await Bootcamp.findOne({ user: req.user.id });
+
+  // If the user is not an admin, they can only add one bootcamp
+  if (publishedBootcamp && req.user.role != "admin") {
+    return next(
+      new ErrorResponse(
+        `The user with id ${req.user.id} has already published a bootcamp`,
+        400
+      )
+    );
+  }
   const bootcamp = await Bootcamp.create(req.body);
   // since we're creating a resource, using 201
   res.status(201).json({
