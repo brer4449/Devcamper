@@ -62,6 +62,54 @@ exports.getMe = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc    Update user details
+// @route   PUT /api/v1/auth/updatedetails
+// @access  Private (token needed? YES)
+
+exports.updateDetails = asyncHandler(async (req, res, next) => {
+  // don't want to just pass in req.body to findByIdAndUpdate because we don't want any user field that's in the model to be updated ie. password, or role, etc.
+  // this should just be for the name and email
+  const fieldsToUpdate = {
+    name: req.body.name,
+    email: req.body.email,
+  };
+
+  // since we're using protect route, will always have access to req.user which will always be current user
+  // the logged in user's ID, and what we want to update
+  const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+
+// @desc    Update password
+// @route   PUT /api/v1/auth/updatepassword
+// @access  Private (token needed? YES)
+
+exports.updatePassword = asyncHandler(async (req, res, next) => {
+  // they're gunna send their current password and a new password in the body
+  // we also want the password which by default is select: false
+  // since we're using protect route, will always have access to req.user which will always be current user
+  const user = await User.findById(req.user.id).select("+password");
+  // Check current password (make sure that's true)
+  // match password method is asynchronous so it returns a promise, hence the await
+  if (!(await user.matchPassword(req.body.currentPassword))) {
+    return next(new ErrorResponse("Password is incorrect", 401));
+  }
+
+  // setting the password to the new password
+  user.password = req.body.newPassword;
+  await user.save();
+
+  // if they change the password, want the token to be sent back (just like when they reset the password)
+  sendTokenResponse(user, 200, res);
+});
+
 // @desc    Forgot password
 // @route   POST /api/v1/auth/forgotpassword
 // @access  Public (token needed? NO)
