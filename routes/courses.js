@@ -9,11 +9,11 @@ const {
 } = require("../controllers/courses");
 
 const Course = require("../models/Course");
-const advancedResults = require("../middleware/advancedResults");
 
 // merging the url params
 const router = express.Router({ mergeParams: true });
 
+const advancedResults = require("../middleware/advancedResults");
 // user has to be logged in in order to access these protected routes
 const { protect, authorize } = require("../middleware/auth");
 

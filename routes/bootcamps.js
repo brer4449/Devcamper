@@ -12,15 +12,15 @@ const {
 
 // bring in bootcamp model (needs to be passed in)
 const Bootcamp = require("../models/Bootcamp");
-// bring in middlware
-const advancedResults = require("../middleware/advancedResults");
-// wherever we want to use advancedResults, need to pass it in with the method
 
 // Include other resource routers
 const courseRouter = require("./courses");
 
 const router = express.Router();
 
+// bring in middlware
+const advancedResults = require("../middleware/advancedResults");
+// wherever we want to use advancedResults, need to pass it in with the method
 const { protect, authorize } = require("../middleware/auth");
 
 // Re-route into other resource routers
