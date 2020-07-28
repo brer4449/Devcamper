@@ -20,6 +20,7 @@ const bootcamps = require("./routes/bootcamps");
 const courses = require("./routes/courses");
 const auth = require("./routes/auth");
 const users = require("./routes/users");
+const reviews = require("./routes/reviews");
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use("/api/v1/bootcamps", bootcamps);
 app.use("/api/v1/courses", courses);
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/users", users);
+app.use("/api/v1/reviews", reviews);
 
 // If we want to be able to use error middleware in the bootcamps controller methods, it HAS to be AFTER the above line, since middleware is run in a linear order
 app.use(errorHandler);
