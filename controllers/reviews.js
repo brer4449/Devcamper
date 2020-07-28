@@ -43,3 +43,28 @@ exports.getReview = asyncHandler(async (req, res, next) => {
     data: review,
   });
 });
+
+// @desc    Add review
+// @route   POST /api/v1/bootcamps/:bootcampId/reviews
+// @access  Private
+exports.addReview = asyncHandler(async (req, res, next) => {
+  // getting the bootcamp from the params
+  req.body.bootcamp = req.params.bootcampId;
+  // getting the logged in user via id
+  req.body.user = req.user.id;
+
+  const bootcamp = await Bootcamp.findById(req.params.bootcampId);
+
+  if (!bootcamp) {
+    return next(
+      new ErrorResponse(`No bootcamp with id of ${req.params.bootcampId}`, 404)
+    );
+  }
+
+  const review = await Review.create(req.body);
+
+  res.status(201).json({
+    success: true,
+    data: review,
+  });
+});
