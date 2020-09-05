@@ -77,6 +77,14 @@ app.use("/api/v1/auth", auth);
 app.use("/api/v1/users", users);
 app.use("/api/v1/reviews", reviews);
 
+/*
+https://www.youtube.com/watch?v=H9BQkVeRVQw
+https://www.youtube.com/watch?v=jrdjfl_nVUM
+https://www.youtube.com/watch?v=G3R8bJcKBZI
+https://www.youtube.com/watch?v=T58t0jZV3Ec
+https://www.youtube.com/watch?v=R5eedh5tLIo
+*/
+
 // If we want to be able to use error middleware in the bootcamps controller methods, it HAS to be AFTER the above line, since middleware is run in a linear order
 app.use(errorHandler);
 
